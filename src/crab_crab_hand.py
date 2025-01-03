@@ -76,13 +76,13 @@ def generate_image_descriptions(images):
     processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
     model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
 
-    prompt = "one word description of image :"
+    prompt = "one word description of image:"
 
     # Generate image descriptions
     input_number = 1
     for image in images:
         inputs = processor(images=image[1], text=prompt, return_tensors="pt")
-        outputs = model.generate(**inputs)
+        outputs = model.generate(**inputs, repetition_penalty=1.5)
         description = processor.decode(outputs[0], skip_special_tokens=True)
         if description.startswith(prompt):
             description = description[len(prompt):].strip()
