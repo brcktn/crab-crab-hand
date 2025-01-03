@@ -1,15 +1,20 @@
 import sys
-import os
 import random
+import re
+import string
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+from tempfile import NamedTemporaryFile
 
 import cv2
-# from gtts import gTTS
-# from moviepy import VideoFileClip
+from gtts import gTTS
+from moviepy import VideoFileClip, AudioFileClip, CompositeAudioClip
 
 from transformers import BlipProcessor, BlipForConditionalGeneration
 from PIL import Image
 
-AVG_WORDS_PER_SECOND = 3  # Number of words spoken per second
+AVG_WORDS_PER_SECOND = 2  # Number of words spoken per second
 TIME_VARIATION_SECONDS = 0.1
 
 def main():
@@ -28,6 +33,8 @@ def main():
 
     extract_images(video_path, images)
     generate_image_descriptions(images)
+    process_descriptions(images)
+    add_tts_audio(images, video_path)
 
 
 def extract_images(video_path, images):
@@ -66,8 +73,6 @@ def extract_images(video_path, images):
 
         frame_count += 1
 
-    # images[1][1].show()
-
     cap.release()
 
 
@@ -76,7 +81,7 @@ def generate_image_descriptions(images):
     processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
     model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
 
-    prompt = "one word description of image:"
+    prompt = "one word description of image :"
 
     # Generate image descriptions
     input_number = 1
@@ -91,6 +96,51 @@ def generate_image_descriptions(images):
         input_number += 1
 
     # return images
+
+
+def process_descriptions(images):
+    # Create a list of image descriptions
+    descriptions = [image[2] for image in images]
+
+    words = []
+
+    for i in range(len(descriptions)):
+        cleaned_text = re.sub(f"[{string.punctuation}]", "", descriptions[i])
+        word_list = cleaned_text.split()
+        word_list = [word for word in word_list if len(word) > 1]   # Remove single character words
+
+        if (i != 0 and descriptions[i] == descriptions[i-1]) or len(word_list) == 0:
+            words.append(words[-1])
+        else:
+            words.append(word_list[random.randint(0, len(word_list) - 1)])
+
+    for i in range(len(images)):
+        images[i][2] = words[i]
+
+
+def add_tts_audio(images, video_path):
+    video = VideoFileClip(video_path)
+    audios = []
+
+    for image in images:
+        tts = gTTS(text=image[2], lang="en")
+        # Use NamedTemporaryFile to avoid overwriting
+        with NamedTemporaryFile(delete=False, suffix=".mp3") as temp_file:
+            temp_filename = temp_file.name
+            tts.save(temp_filename)
+            audio = AudioFileClip(temp_filename)
+            audio = audio.with_start(image[0] / video.fps)
+            audios.append(audio)
+            
+            # Remove the temporary file after processing
+            os.remove(temp_filename)
+
+
+    combined_audio = CompositeAudioClip(audios)
+    video = video.with_audio(combined_audio)
+    video.write_videofile("output.mp4", codec="libx264", audio_codec="aac")
+
+        
 
 if __name__ == "__main__":
     main()
