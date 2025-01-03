@@ -123,7 +123,10 @@ def add_tts_audio(images, video_path):
     audios = []
 
     for image in images:
-        tts = gTTS(text=image[2], lang="en")
+        if random.random() < 0.1:
+            tts = gTTS(text=image[2]+"?", lang="en")
+        else:
+            tts = gTTS(text=image[2], lang="en")
         # Use NamedTemporaryFile to avoid overwriting
         with NamedTemporaryFile(delete=False, suffix=".mp3") as temp_file:
             temp_filename = temp_file.name
@@ -137,6 +140,7 @@ def add_tts_audio(images, video_path):
 
 
     combined_audio = CompositeAudioClip(audios)
+    combined_audio = combined_audio.subclipped(0, video.duration)
     video = video.with_audio(combined_audio)
     video.write_videofile("output.mp4", codec="libx264", audio_codec="aac")
 
