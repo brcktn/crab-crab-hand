@@ -81,7 +81,7 @@ def generate_image_descriptions(images):
     processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
     model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
 
-    prompt = "one word description of image :"
+    prompt = "detailed description of image :"
 
     # Generate image descriptions
     input_number = 1
@@ -123,7 +123,7 @@ def add_tts_audio(images, video_path):
     audios = []
 
     for image in images:
-        if random.random() < 0.1:
+        if random.random() < 0.2:
             tts = gTTS(text=image[2]+"?", lang="en")
         else:
             tts = gTTS(text=image[2], lang="en")
