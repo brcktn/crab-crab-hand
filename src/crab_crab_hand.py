@@ -1,6 +1,12 @@
 import cv2
 import sys
 import os
+from gtts import gTTS
+from moviepy import VideoFileClip
+
+import torch
+# from torchvision import models, transforms
+from PIL import Image
 
 WORDS_PER_SECOND = 2  # Number of words spoken per second
 
@@ -48,6 +54,8 @@ def main():
 
     print(f"Extracted {frame_count // frames_per_word + 1} frames.")
     cap.release()
+
+
 
 
 if __name__ == "__main__":
