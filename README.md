@@ -1,1 +1,17 @@
-# crab-crab-hand
+# **Crab Crab Hand**
+
+This script automatically generates videos in the style of this [video](https://www.youtube.com/watch?v=wIfvcWCZZ7w)
+
+## **Dependencies**
+Install required packages with:
+```bash
+pip install opencv-python Pillow gTTS moviepy transformers torch
+```
+
+## **Usage**
+Run the script from the terminal:
+```
+python program.py <input_video_path> [output_video_path]
+```
+- **`<input_video_path>`**: Input video file path.  
+- **`[output_video_path]`** (optional): Output video file path (default: `output.mp4`).
