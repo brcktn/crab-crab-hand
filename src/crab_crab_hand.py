@@ -22,7 +22,7 @@ def main():
 
     # Check if enough arguments are provided
     if len(sys.argv) < 2:
-        print("\033[91mUsage: python program.py <video directory> (output_directory/name)\033[0m")
+        print("\033[91mUsage: python program.py <input_video_path> [output_video_path]\033[0m")
         sys.exit(1)
     
     if len(sys.argv) > 2:
