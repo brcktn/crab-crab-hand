@@ -18,28 +18,39 @@ AVG_WORDS_PER_SECOND = 2  # Number of words spoken per second
 TIME_VARIATION_SECONDS = 0.1
 
 def main():
-    print("running...")
+    print("Running...")
 
     # Check if enough arguments are provided
     if len(sys.argv) < 2:
-        print("\033[91mUsage: python program.py <video directory>\033[0m")
+        print("\033[91mUsage: python program.py <video directory> (output_directory/name)\033[0m")
         sys.exit(1)
     
+    if len(sys.argv) > 2:
+        if sys.argv[2].endswith(".mp4"):
+            output_path = sys.argv[2]
+        else:
+            output_path = sys.argv[2] + ".mp4"
+    else:
+        output_path = "output.mp4"
+
     # Access command line arguments
     argument = sys.argv[1]
-    video_path = argument
+    input_video_path = argument
 
     images: list[list[int, Image.Image, str]] = [] # (frame count, image, image description)
 
-    extract_images(video_path, images)
+    extract_images(input_video_path, images)
     generate_image_descriptions(images)
     process_descriptions(images)
-    add_tts_audio(images, video_path)
+    add_tts_audio(images, input_video_path, output_path)
+
+    print("Done!")
+    print(f"Output video saved to: {output_path}")
 
 
-def extract_images(video_path, images):
+def extract_images(input_video_path, images):
     # Create a video capture object
-    cap = cv2.VideoCapture(video_path)
+    cap = cv2.VideoCapture(input_video_path)
 
     # Get the frames per second (FPS) of the video
     fps = int(cap.get(cv2.CAP_PROP_FPS))
@@ -118,8 +129,8 @@ def process_descriptions(images):
         images[i][2] = words[i]
 
 
-def add_tts_audio(images, video_path):
-    video = VideoFileClip(video_path)
+def add_tts_audio(images, input_video_path, output_path):
+    video = VideoFileClip(input_video_path)
     audios = []
 
     for image in images:
@@ -142,7 +153,7 @@ def add_tts_audio(images, video_path):
     combined_audio = CompositeAudioClip(audios)
     combined_audio = combined_audio.subclipped(0, video.duration)
     video = video.with_audio(combined_audio)
-    video.write_videofile("output.mp4", codec="libx264", audio_codec="aac")
+    video.write_videofile(output_path, codec="libx264", audio_codec="aac")
 
         
 
