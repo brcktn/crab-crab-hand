@@ -22,7 +22,7 @@ def main():
 
     # Check if enough arguments are provided
     if len(sys.argv) < 2:
-        print("\033[91mUsage: python program.py <input_video_path> [output_video_path]\033[0m")
+        print("\033[91mUsage: python program.py <input_video_path> [output_video_path] [\"prompt for image recognition\"]\033[0m")
         sys.exit(1)
     
     if len(sys.argv) > 2:
@@ -33,6 +33,11 @@ def main():
     else:
         output_path = "output.mp4"
 
+    if len(sys.argv) > 3:
+        prompt = sys.argv[3]
+    else:
+        prompt = "detailed description of image :"
+
     # Access command line arguments
     argument = sys.argv[1]
     input_video_path = argument
@@ -40,7 +45,7 @@ def main():
     images: list[list[int, Image.Image, str]] = [] # (frame count, image, image description)
 
     extract_images(input_video_path, images)
-    generate_image_descriptions(images)
+    generate_image_descriptions(images, prompt)
     process_descriptions(images)
     add_tts_audio(images, input_video_path, output_path)
 
@@ -87,12 +92,10 @@ def extract_images(input_video_path, images):
     cap.release()
 
 
-def generate_image_descriptions(images):
+def generate_image_descriptions(images, prompt):
     # Load the Blip model
     processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
     model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
-
-    prompt = "detailed description of image :"
 
     # Generate image descriptions
     input_number = 1
@@ -120,7 +123,9 @@ def process_descriptions(images):
         word_list = cleaned_text.split()
         word_list = [word for word in word_list if len(word) > 1]   # Remove single character words
 
-        if (i != 0 and descriptions[i] == descriptions[i-1]) or len(word_list) == 0:
+        if len(word_list) == 0 and i == 0:
+            words.append("")
+        elif (i != 0 and descriptions[i] == descriptions[i-1]) or len(word_list) == 0:
             words.append(words[-1])
         else:
             words.append(word_list[random.randint(0, len(word_list) - 1)])
