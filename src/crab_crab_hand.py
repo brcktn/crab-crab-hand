@@ -34,7 +34,7 @@ def main():
         output_path = "output.mp4"
 
     if len(sys.argv) > 3:
-        prompt = sys.argv[3]
+        prompt = sys.argv[3].lower()
     else:
         prompt = "detailed description of image :"
 
